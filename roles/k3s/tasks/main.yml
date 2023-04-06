@@ -1,0 +1,89 @@
+- name: Upgrade all packages
+  ansible.builtin.dnf:
+    name: "*"
+    state: latest
+  tags:
+    - packages
+
+- name: Download k3s installer
+  ansible.builtin.get_url:
+    url: https://get.k3s.io
+    dest: /tmp/install_k3s.sh
+    mode: 'u+rwx'
+  tags:
+    - k3s
+- name: exec the k3s installer
+  ansible.builtin.shell: 
+    cmd: "sh /tmp/install_k3s.sh >> install_k3s_{{ ansible_date_time.iso8601_basic_short }}.log"
+  tags:
+    - k3s
+
+- name: Start service k3s, if not started
+  ansible.builtin.service:
+    name: k3s.service
+    state: started
+    enabled: yes
+  tags:
+    - k3s
+
+# - name: Add kube repository
+#   ansible.builtin.yum_repository:
+#     name: Kubernetes
+#     description: Kubernetes repo
+#     file: external_repos
+#     baseurl: https://packages.cloud.google.com/yum/repos/kubernetes-el7-\$basearch\
+#     enabled: yes
+#     gpgcheck: yes
+#     gpgkey: https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
+#     repo_gpgcheck: yes
+#     exclude: kubelet kubeadm kubectl
+#   tags:
+#     - repository
+
+- name: Insert yum repo for kube
+  template:
+    src: kubernetes.repo.j2
+    dest: /etc/yum.repos.d/kubernetes.repo
+  tags:
+    - repository
+
+# - name: Install the latest version Kubernetes tools
+#   ansible.builtin.yum:
+#     name:
+#       - kubelet
+#       - kubeadm
+#       - kubectl
+#     state: present
+#     disable_excludes: kubernetes
+#   tags:
+#     - repository
+
+- name: Create Directory for kub conf
+  file:
+    path: ~/.kube
+    recursive: yes
+    state: directory
+  tags:
+    - kub_conf
+- name: Copy k3s conf file
+  copy:
+    src: /etc/rancher/k3s/k3s.yaml
+    dest: ~/.kube/config  
+    mode: 600
+  tags:
+    - kub_conf
+
+
+############## A FAIRE : 
+# $ cat <<EOF | sudo tee /etc/yum.repos.d/kubernetes.repo
+# [kubernetes]
+# name=Kubernetes
+# baseurl=https://packages.cloud.google.com/yum/repos/kubernetes-el7-\$basearch
+# enabled=1
+# gpgcheck=1
+# repo_gpgcheck=1
+# gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
+# exclude=kubelet kubeadm kubectl
+# EOF
+
+# $ sudo dnf install -y kubelet kubeadm kubectl --disableexcludes=kubernetes
