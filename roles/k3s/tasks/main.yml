@@ -26,19 +26,6 @@
   tags:
     - k3s
 
-# - name: Add kube repository
-#   ansible.builtin.yum_repository:
-#     name: Kubernetes
-#     description: Kubernetes repo
-#     file: external_repos
-#     baseurl: https://packages.cloud.google.com/yum/repos/kubernetes-el7-\$basearch\
-#     enabled: yes
-#     gpgcheck: yes
-#     gpgkey: https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
-#     repo_gpgcheck: yes
-#     exclude: kubelet kubeadm kubectl
-#   tags:
-#     - repository
 
 - name: Insert yum repo for kube
   template:
@@ -47,24 +34,25 @@
   tags:
     - repository
 
-# - name: Install the latest version Kubernetes tools
-#   ansible.builtin.yum:
-#     name:
-#       - kubelet
-#       - kubeadm
-#       - kubectl
-#     state: present
-#     disable_excludes: kubernetes
-#   tags:
-#     - repository
+- name: Install the latest version Kubernetes tools
+  ansible.builtin.yum:
+    name:
+      - kubelet
+      - kubeadm
+      - kubectl
+    state: present
+    disable_excludes: kubernetes
+  tags:
+    - repository
 
 - name: Create Directory for kub conf
   file:
     path: ~/.kube
-    recursive: yes
+    recurse: yes
     state: directory
   tags:
     - kub_conf
+
 - name: Copy k3s conf file
   copy:
     src: /etc/rancher/k3s/k3s.yaml
