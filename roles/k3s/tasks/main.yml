@@ -26,7 +26,6 @@
   tags:
     - k3s
 
-
 - name: Insert yum repo for kube
   template:
     src: kubernetes.repo.j2
@@ -34,44 +33,37 @@
   tags:
     - repository
 
-- name: Install the latest version Kubernetes tools
-  ansible.builtin.yum:
-    name:
-      - kubelet
-      - kubeadm
-      - kubectl
-    state: present
-    disable_excludes: kubernetes
+- name: Get latest release kubectl bin
+  shell:
+    cmd: 'curl -o /root/kubectl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"'
+  register: kubectl_file
   tags:
-    - repository
+    - kub_conf
+
+- name: Copy kubectl file
+  copy:
+    src: ~/kubectl
+    dest: /usr/bin/kubectl
+    mode: a+x
+    owner: root
+    group: root
+    remote_src: yes
+  tags:
+    - kub_conf
 
 - name: Create Directory for kub conf
   file:
     path: ~/.kube
-    recurse: yes
     state: directory
   tags:
     - kub_conf
+    - kub_file
 
 - name: Copy k3s conf file
-  copy:
-    src: /etc/rancher/k3s/k3s.yaml
-    dest: ~/.kube/config  
-    mode: 600
+  shell:
+    cmd: '\cp -r /etc/rancher/k3s/k3s.yaml ~/.kube/config'
+
   tags:
     - kub_conf
+    - kub_file
 
-
-############## A FAIRE : 
-# $ cat <<EOF | sudo tee /etc/yum.repos.d/kubernetes.repo
-# [kubernetes]
-# name=Kubernetes
-# baseurl=https://packages.cloud.google.com/yum/repos/kubernetes-el7-\$basearch
-# enabled=1
-# gpgcheck=1
-# repo_gpgcheck=1
-# gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
-# exclude=kubelet kubeadm kubectl
-# EOF
-
-# $ sudo dnf install -y kubelet kubeadm kubectl --disableexcludes=kubernetes

@@ -1,0 +1,1 @@
+https://greg.jeanmart.me/2020/04/13/self-host-your-media-center-on-kubernetes-wi/#Ingress
