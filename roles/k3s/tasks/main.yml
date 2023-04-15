@@ -5,6 +5,15 @@
   tags:
     - packages
 
+- name: Install packages
+  ansible.builtin.dnf:
+    name: "{{ item }}"
+    state: latest
+  loop:
+    - git
+  tags:
+    - packages
+
 - name: Download k3s installer
   ansible.builtin.get_url:
     url: https://get.k3s.io
@@ -27,21 +36,21 @@
     - k3s
 
 - name: Insert yum repo for kube
-  template:
+  ansible.builtin.template:
     src: kubernetes.repo.j2
     dest: /etc/yum.repos.d/kubernetes.repo
   tags:
     - repository
 
 - name: Get latest release kubectl bin
-  shell:
+  ansible.builtin.shell:
     cmd: 'curl -o /root/kubectl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"'
   register: kubectl_file
   tags:
     - kub_conf
 
 - name: Copy kubectl file
-  copy:
+  ansible.builtin.copy:
     src: ~/kubectl
     dest: /usr/bin/kubectl
     mode: a+x
@@ -52,7 +61,7 @@
     - kub_conf
 
 - name: Create Directory for kub conf
-  file:
+  ansible.builtin.file:
     path: ~/.kube
     state: directory
   tags:
@@ -60,10 +69,36 @@
     - kub_file
 
 - name: Copy k3s conf file
-  shell:
+  ansible.builtin.shell:
     cmd: '\cp -r /etc/rancher/k3s/k3s.yaml ~/.kube/config'
-
   tags:
     - kub_conf
     - kub_file
 
+- name: 'https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3'
+  ansible.builtin.uri:
+    url: 'https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3'
+    method: GET
+    dest: /tmp/get_helm.sh
+    follow_redirects: safe
+    mode: 700
+  register: result  
+  tags:
+    - helm
+
+- name: Replace a localhost entry searching for a literal string to avoid escaping
+  ansible.builtin.lineinfile:
+    path: /tmp/get_helm.sh
+    search_string: '${HELM_INSTALL_DIR:="/usr/local/bin"}'
+    line: '${HELM_INSTALL_DIR:="/usr/bin"}'
+    mode: 700
+  tags:
+    - helm
+
+- name: Launch helm script
+  shell:
+      "./get_helm.sh"
+  args:
+    chdir: "/tmp" 
+  tags:
+    - helm
