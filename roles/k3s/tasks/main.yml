@@ -102,3 +102,53 @@
     chdir: "/tmp" 
   tags:
     - helm
+
+- name: install pre-requisites
+  pip:
+    name:
+      - openshift
+      - pyyaml
+      - kubernetes 
+  tags:
+    - kub_conf
+
+- name: Create k8s namespace
+  kubernetes.core.k8s:
+    name: "{{ media_namespace }}"
+    api_version: v1
+    kind: Namespace
+    state: present
+  tags:
+    - kub_conf
+    - namespace
+
+- name: Create /data Directory
+  ansible.builtin.file:
+    path: /data
+    state: directory
+  tags:
+    - kub_conf
+    - pvc_creation
+
+- name: Copy file for Persistent Volume
+  ansible.builtin.template:
+    src: "{{ item }}.j2"
+    dest: "/tmp/{{ item }}"
+  loop:
+    - kube_pv.yaml
+    - kube_pvc.yaml
+  tags:
+    - kub_conf
+    - pvc_creation
+
+- name: Create a deployment
+  kubernetes.core.k8s:
+    state: present            # State=present when you need to create new object
+    namespace: "{{ media_namespace }}" # defining the namespace
+    src: "/tmp/{{ item }}"
+  loop:
+    - kube_pv.yaml
+    - kube_pvc.yaml
+  tags:
+    - kub_conf
+    - pvc_creation
