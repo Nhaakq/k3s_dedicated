@@ -1,0 +1,9 @@
+- name: Upgrade all packages
+  ansible.builtin.dnf:
+    name: "*"
+    state: latest
+  tags:
+    - packages
+
+- name: Install packages
+  
