@@ -1,0 +1,8 @@
+capacity_pv: 90
+direcotry_pv: /data
+name_pv: data-media
+name_pvc: data-media-pvc
+
+media_namespace: media-server
+
+sonarr_repo_url: https://charts.pree.dev
