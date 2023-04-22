@@ -126,17 +126,21 @@
   ansible.builtin.file:
     path: /data
     state: directory
+    recurse: true
+    mode: 0777
   tags:
     - kub_conf
     - pvc_creation
 
 - name: Copy file for Persistent Volume
   ansible.builtin.template:
-    src: "{{ item }}.j2"
+    src: "{{ item }}"
     dest: "/tmp/{{ item }}"
   loop:
-    - kube_pv.yaml
-    - kube_pvc.yaml
+    - pv_config.yaml.j2
+    - pv_data.yaml.j2
+    - pvc_config.yaml.j2
+    - pvc_data.j2
   tags:
     - kub_conf
     - pvc_creation
@@ -147,8 +151,10 @@
     namespace: "{{ media_namespace }}" # defining the namespace
     src: "/tmp/{{ item }}"
   loop:
-    - kube_pv.yaml
-    - kube_pvc.yaml
+    - pv_config.yaml.j2
+    - pv_data.yaml.j2
+    - pvc_config.yaml.j2
+    - pvc_data.j2
   tags:
     - kub_conf
     - pvc_creation

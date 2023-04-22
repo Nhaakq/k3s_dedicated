@@ -1,0 +1,14 @@
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+   name: {{ name_pv_config }}
+   labels:
+      type: local
+spec:
+   storageClassName: config
+   capacity:
+      storage: {{ capacity_pv_config }}Gi
+   accessModes:
+      - ReadWriteMany
+   hostPath:
+      path: "{{ path_config }}"
