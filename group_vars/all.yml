@@ -1,6 +1,17 @@
 media_namespace: media-server
 
+kub_user: kah
+kub_user_uid: 568
+kub_group: kah
+kub_group_gid: 568
+
 sonarr_repo_url: https://charts.pree.dev
+sonarr_repo_name: pree-helm-charts
+sonar_repo_ref: sonarr
+
+torrent_repo_url: https://geek-cookbook.github.io/charts/
+torrent_repo_name: geek-cookbook
+torrent_repo_ref: qbittorrent 
 
 name_pv_config: config-media
 capacity_pv_config: 30

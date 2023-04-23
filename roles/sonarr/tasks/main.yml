@@ -1,13 +1,13 @@
 - name: Add sonarr repo
   kubernetes.core.helm_repository:
-    name: pree-helm-charts  
+    name: "{{ sonarr_repo_name }}"
     repo_url: "{{ sonarr_repo_url }}"
 
 - name: Install Sonarr Chart
   kubernetes.core.helm:
     name: sonarr
     namespace: "{{ media_namespace }}"
-    chart_ref: pree-helm-charts/sonarr
+    chart_ref: "{{ sonarr_repo_name }}/{{ sonar_repo_ref }}"
 
 - name: Deploy Sonarr Chart
   kubernetes.core.helm:

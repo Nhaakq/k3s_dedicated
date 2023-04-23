@@ -14,6 +14,20 @@
   tags:
     - packages
 
+- name: Create group K8S
+  group:
+    name: "{{ kub_group }}"
+    gid: "{{ kub_group_gid }}"
+    state: present
+
+- name: Create Users Task
+  user:
+    name: "{{ kub_user }}"
+    state: present
+    shell: /bin/bash
+    uid: "{{ kub_user_uid }}"
+    group: "{{ kub_group }}"
+
 - name: Download k3s installer
   ansible.builtin.get_url:
     url: https://get.k3s.io
@@ -86,7 +100,7 @@
   tags:
     - helm
 
-- name: Replace a localhost entry searching for a literal string to avoid escaping
+- name: Replace helm install dir
   ansible.builtin.lineinfile:
     path: /tmp/get_helm.sh
     search_string: '${HELM_INSTALL_DIR:="/usr/local/bin"}'
@@ -127,7 +141,9 @@
     path: /data
     state: directory
     recurse: true
-    mode: 0777
+    mode: 0750
+    owner: "{{ kub_user }}"
+    group: "{{ kub_group }}"
   tags:
     - kub_conf
     - pvc_creation
@@ -136,6 +152,8 @@
   ansible.builtin.template:
     src: "{{ item }}"
     dest: "/tmp/{{ item }}"
+    owner: "{{ kub_user }}"
+    group: "{{ kub_group }}"
   loop:
     - pv_config.yaml.j2
     - pv_data.yaml.j2
