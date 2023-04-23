@@ -1,0 +1,4 @@
+- hosts: k3s-test-nko
+  become: yes
+  roles:
+    - role: torrent

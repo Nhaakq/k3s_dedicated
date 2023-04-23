@@ -1,0 +1,24 @@
+- name: Add torrent repo
+  kubernetes.core.helm_repository:
+    name: "{{ torrent_repo_name }}" 
+    repo_url: "{{ torrent_repo_url }}"
+
+- name: Install torrent Chart
+  kubernetes.core.helm:
+    name: torrent
+    namespace: "{{ media_namespace }}"
+    chart_ref: "{{ torrent_repo_name }}/{{ torrent_repo_ref }}"  
+
+- name: Deploy torrent Chart
+  kubernetes.core.helm:
+    name: torrent
+    namespace: "{{ media_namespace }}"
+    chart_ref: "{{ torrent_repo_name }}/{{ torrent_repo_ref }}"  
+    values: "{{ lookup('template', 'torrent_values.yaml') | from_yaml }}"
+
+- name: Deploy torrent configuration
+  ansible.builtin.template:
+    src: templates/torrent_config.j2
+    dest: /data/config/qBittorrent/qBittorrent.conf
+    owner: "{{ kub_user }}"
+    group: "{{ kub_group }}"
