@@ -1,0 +1,71 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ app_name }}
+  namespace: {{ media_namespace }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ app_name }}
+  template:
+    metadata:
+      labels:
+        app: {{ app_name }}
+    spec:
+      volumes:
+        - name: {{ app_name }}-config
+          persistentVolumeClaim:
+            claimName: {{ name_pvc_config }}
+      containers:
+        - name: {{ app_name }}
+          image: linuxserver/sonarr
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8989
+          imagePullPolicy: Always
+          volumeMounts:
+            - mountPath: "/config"
+              subPath: config/{{ app_name }}
+              name: {{ app_name }}-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ app_name }}
+  namespace: {{ media_namespace }}
+spec:
+  ports:
+  - port: 5678
+    targetPort: {{ app_port }}
+    name: tcp
+  selector:
+    app: {{ app_name }}
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+      traefik.ingress.kubernetes.io/router.middlewares: default-redirect-https@kubernetescrd
+      cert-manager.io/cluster-issuer: {{ domain_name }}-issuer
+      traefik.ingress.kubernetes.io/redirect-entry-point: https
+      traefik.ingress.kubernetes.io/redirect-permanent: "true"
+  name: ingress
+  namespace: {{ media_namespace }}
+spec:
+  rules:
+    - host: {{ app_name }}.{{ domain_name }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ app_name }}
+                port:
+                  number: 5678
+  tls:
+  - hosts:
+    - {{ app_name }}.{{ domain_name }}
+    secretName: {{ app_name }}-tls-cer

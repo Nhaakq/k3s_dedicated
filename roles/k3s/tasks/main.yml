@@ -148,17 +148,33 @@
     - kub_conf
     - pvc_creation
 
-- name: Copy file for Persistent Volume
+- name: Download cert manager conf
+  ansible.builtin.get_url:
+    url: https://github.com/cert-manager/cert-manager/releases/latest/download/cert-manager.yaml
+    dest: /tmp/cert-manager.yaml
+    mode: '0440'
+
+- name: Install Cert Manager
+  kubernetes.core.k8s:
+    state: present            # State=present when you need to create new object
+    src: /tmp/cert-manager.yaml
+  tags:
+    - kub_conf
+    - ssl_configuration
+
+- name: Sleep for 60 seconds and continue with play
+  ansible.builtin.wait_for:
+    timeout: 60
+  delegate_to: localhost
+
+- name: Copy file for k3s Deployment
   ansible.builtin.template:
     src: "{{ item }}"
     dest: "/tmp/{{ item }}"
     owner: "{{ kub_user }}"
     group: "{{ kub_group }}"
   loop:
-    - pv_config.yaml.j2
-    - pv_data.yaml.j2
-    - pvc_config.yaml.j2
-    - pvc_data.j2
+    - "{{ list_k8s_files }}"
   tags:
     - kub_conf
     - pvc_creation
@@ -169,10 +185,8 @@
     namespace: "{{ media_namespace }}" # defining the namespace
     src: "/tmp/{{ item }}"
   loop:
-    - pv_config.yaml.j2
-    - pv_data.yaml.j2
-    - pvc_config.yaml.j2
-    - pvc_data.j2
+    - "{{ list_k8s_files }}"
   tags:
     - kub_conf
     - pvc_creation
+

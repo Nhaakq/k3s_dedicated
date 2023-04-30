@@ -1,0 +1,31 @@
+- name: Add keycloak repo
+  kubernetes.core.helm_repository:
+    name: "{{ keycloak_repo_name }}" 
+    repo_url: "{{ keycloak_repo_url }}"
+
+- name: Install keycloak Chart
+  kubernetes.core.helm:
+    name: keycloak
+    namespace: "{{ media_namespace }}"
+    chart_ref: "{{ keycloak_repo_name }}/{{ keycloak_repo_ref }}"  
+
+- name: Deploy Values charts
+  ansible.builtin.template:
+    src: templates/keycloak_values.yaml.j2
+    dest: /tmp/keycloak_values.yaml
+    owner: "{{ kub_user }}"
+    group: "{{ kub_group }}"
+
+- name: Deploy keycloak Chart
+  kubernetes.core.helm:
+    name: keycloak
+    namespace: "{{ media_namespace }}"
+    chart_ref: "{{ keycloak_repo_name }}/{{ keycloak_repo_ref }}"  
+    values_files : "/tmp/keycloak_values.yaml"
+
+- name: Deploy keycloak configuration
+  ansible.builtin.template:
+    src: templates/keycloak_config.j2
+    dest: /data/config/qBitkeycloak/qBitkeycloak.conf
+    owner: "{{ kub_user }}"
+    group: "{{ kub_group }}"

@@ -1,1 +1,4 @@
 NKO-KEY-BITWARDEN.pem
+roles/sonarr/templates/deploy_test.yml
+roles/dev/
+test*

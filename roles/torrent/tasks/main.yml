@@ -9,12 +9,19 @@
     namespace: "{{ media_namespace }}"
     chart_ref: "{{ torrent_repo_name }}/{{ torrent_repo_ref }}"  
 
+- name: Deploy Values charts
+  ansible.builtin.template:
+    src: templates/torrent_values.yaml.j2
+    dest: /tmp/torrent_values.yaml
+    owner: "{{ kub_user }}"
+    group: "{{ kub_group }}"
+
 - name: Deploy torrent Chart
   kubernetes.core.helm:
     name: torrent
     namespace: "{{ media_namespace }}"
     chart_ref: "{{ torrent_repo_name }}/{{ torrent_repo_ref }}"  
-    values: "{{ lookup('template', 'torrent_values.yaml') | from_yaml }}"
+    values_files : "/tmp/torrent_values.yaml"
 
 - name: Deploy torrent configuration
   ansible.builtin.template:

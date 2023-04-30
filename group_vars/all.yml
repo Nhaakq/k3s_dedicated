@@ -1,3 +1,5 @@
+domain_name:
+
 media_namespace: media-server
 
 kub_user: kah
@@ -15,13 +17,27 @@ torrent_repo_ref: qbittorrent
 
 name_pv_config: config-media
 capacity_pv_config: 30
-path_config: /data
+path_config: /data/config
+name_pvc_config: config-media-pvc
 
 name_pv_data: data-media
 capacity_pv_data: 30
-path_data: /data
-
-name_pvc_config: config-media-pvc
-
-
+path_data: /data/media
 name_pvc_data: data-media-pvc
+
+name_pv_download: downloads-media
+capacity_pv_download: 30
+path_download: /data/downloads
+name_pvc_download: download-media-pvc
+
+list_k8s_files:
+  - pv_config.yaml.j2
+  - pv_data.yaml.j2
+  - pv_download.yaml.j2
+  - pvc_config.yaml.j2
+  - pvc_data.j2
+  - pvc_download.yaml.j2
+  - cluster_issuer.yaml.j2
+  - traefik_middlewares.yaml.j2
+
+

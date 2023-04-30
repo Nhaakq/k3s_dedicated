@@ -1,0 +1,14 @@
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+   name: {{ name_pv_download }}
+   labels:
+      type: local
+spec:
+   storageClassName: download
+   capacity:
+      storage: {{ capacity_pv_download }}Gi
+   accessModes:
+      - ReadWriteMany
+   hostPath:
+      path: "{{ path_download }}"
