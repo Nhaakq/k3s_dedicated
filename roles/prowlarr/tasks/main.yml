@@ -1,0 +1,46 @@
+- name: Deploy Values charts
+  ansible.builtin.template:
+    src: templates/prowlarr_deployment.yaml.j2
+    dest: /tmp/prowlarr_deployment.yaml
+    owner: "{{ kub_user }}"
+    group: "{{ kub_group }}"
+  tags:
+    - prowlarr_install
+
+- name: Create a deployment
+  kubernetes.core.k8s:
+    apply: true
+    state: present
+    namespace: "{{ media_namespace }}"
+    src: "/tmp/prowlarr_deployment.yaml"
+  tags:
+    - prowlarr_install
+
+- name: Wait till the {{ app_name }} pod is running
+  kubernetes.core.k8s_info:
+    kind: Pod
+    wait: yes
+    label_selectors:
+      - "app = {{ app_name }}"
+    namespace: "{{ media_namespace }}"
+    wait_sleep: 10
+    wait_timeout: 360
+    wait_condition:
+      type: ContainersReady
+      status: "True"
+  register: demo
+
+- name: Change line for remove authent reauirement on web
+  replace:
+    path: "{{ path_config }}/config/prowlarr/config.xml"
+    regexp: '<AuthenticationMethod>None</AuthenticationMethod>'
+    replace: "<AuthenticationMethod>External</AuthenticationMethod>"
+
+- name: kill {{ app_name }} pod
+  kubernetes.core.k8s:
+    state: absent
+    api_version: v1
+    kind: Pod
+    namespace: "{{ media_namespace }}"
+    label_selectors:
+      - "app = {{ app_name }}"

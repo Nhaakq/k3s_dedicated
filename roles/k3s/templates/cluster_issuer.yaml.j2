@@ -9,7 +9,8 @@ spec:
    privateKeySecretRef:
      # if not existing, it will register a new account and stores it
      name: {{ domain_name }}-issuer-k3s
-   server: https://acme-v02.api.letsencrypt.org/directory
+   # server: https://acme-v02.api.letsencrypt.org/directory
+   server: https://acme-staging-v02.api.letsencrypt.org/directory
    solvers:
      - http01:
          # The ingressClass used to create the necessary ingress routes

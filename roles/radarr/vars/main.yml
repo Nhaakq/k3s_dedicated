@@ -1,0 +1,5 @@
+app_name: radarr
+web_name: films
+app_port: 7878
+service_port: 6002
+container_image: lscr.io/linuxserver/radarr

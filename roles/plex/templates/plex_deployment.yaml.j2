@@ -41,8 +41,11 @@ spec:
             - mountPath: "/config"
               subPath: config/{{ app_name }}
               name: {{ app_name }}-config
-            - mountPath: "/media"
-              subPath: media/
+            - mountPath: "/tv"
+              subPath: media/tv
+              name: {{ app_name }}-data
+            - mountPath: "/movies"
+              subPath: media/movies
               name: {{ app_name }}-data
 ---
 apiVersion: v1

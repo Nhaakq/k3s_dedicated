@@ -1,11 +1,11 @@
 kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
-   name: {{ name_pvc_config }}
+   name: {{ name_pvc_download }}
 spec:
-   storageClassName: config
+   storageClassName: download
    accessModes:
       - ReadWriteMany
    resources:
       requests:
-         storage: {{ capacity_pv_config }}Gi
+         storage: {{ capacity_pv_download }}Gi

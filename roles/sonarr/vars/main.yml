@@ -1,2 +1,5 @@
-app_name : sonarr
+app_name: sonarr
+web_name: series
 app_port: 8989
+service_port: 6001
+container_image: lscr.io/linuxserver/sonarr

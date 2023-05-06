@@ -3,7 +3,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ app_name }}
-  namespace: {{ media_namespace }}
+  namespace: {{ auth_namespace }}
 spec:
   replicas: 1
   selector:
@@ -17,21 +17,16 @@ spec:
       volumes:
         - name: {{ app_name }}-config
           persistentVolumeClaim:
-            claimName: {{ name_pvc_config }}
-        - name: {{ app_name }}-data
-          persistentVolumeClaim:
-            claimName: {{ name_pvc_data }}
+            claimName: {{ name_pvc_config_authelia }}
       containers:
         - name: {{ app_name }}
-          image: {{ container_image }}
+          image: {{ app_name }}/{{ app_name }}
           imagePullPolicy: Always
           env:
             - name: UID
               value: "{{ kub_user_uid }}"
             - name: PGID
               value: "{{ kub_group_gid }}"
-            - name: UMASK
-              value: "002"
             - name: TZ
               value: "Europe/Paris"
           ports:
@@ -41,18 +36,15 @@ spec:
             - mountPath: "/config"
               subPath: config/{{ app_name }}
               name: {{ app_name }}-config
-            - mountPath: "/media"
-              subPath: media/
-              name: {{ app_name }}-data
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: {{ app_name }}
-  namespace: {{ media_namespace }}
+  namespace: {{ auth_namespace }}
 spec:
   ports:
-  - port: {{  service_port }}
+  - port: {{ service_port }}
     targetPort: {{ app_port }}
     name: tcp
   selector:
@@ -62,13 +54,13 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   annotations:
-      traefik.ingress.kubernetes.io/router.middlewares: {{ media_namespace }}-redirect-https@kubernetescrd,{{ auth_namespace }}-forwardauth-authelia@kubernetescrd
-      cert-manager.io/cluster-issuer: {{ domain_name }}-issuer
-      traefik.ingress.kubernetes.io/router.entryPoints: web,websecure
-      traefik.ingress.kubernetes.io/router.tls: "true"
-      kubernetes.io/ingress.class: traefik
-  name: ingress-{{ app_name }}
-  namespace: {{ media_namespace }}
+    traefik.ingress.kubernetes.io/router.middlewares: {{ media_namespace }}-redirect-https@kubernetescrd
+    cert-manager.io/cluster-issuer: {{ domain_name }}-issuer
+    traefik.ingress.kubernetes.io/redirect-entry-point: https
+    traefik.ingress.kubernetes.io/redirect-permanent: "true"
+    kubernetes.io/ingress.class: traefik
+  name: {{ app_name }}-ingress
+  namespace: {{ auth_namespace }}
 spec:
   rules:
     - host: {{ web_name }}.{{ domain_name }}
@@ -80,8 +72,27 @@ spec:
               service:
                 name: {{ app_name }}
                 port:
-                  number: {{  service_port }}
+                  number: {{ service_port }}
   tls:
   - hosts:
     - {{ web_name }}.{{ domain_name }}
     secretName: {{ app_name }}-tls-cer
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: forwardauth-{{ app_name }}
+  namespace: {{ auth_namespace }}
+  labels:
+    app.kubernetes.io/instance: {{ app_name }}
+    app.kubernetes.io/name: {{ app_name }}
+spec:
+  forwardAuth:
+    address: http://{{ app_name }}.{{ auth_namespace }}.svc.cluster.local:{{ service_port }}/api/verify?rd=https%3A%2F%2F{{ web_name }}.{{ domain_name }}%2F
+    tls:
+      insecureSkipVerify: true
+    authResponseHeaders:
+      - Remote-User
+      - Remote-Name
+      - Remote-Email
+      - Remote-Groups

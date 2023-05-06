@@ -1,0 +1,5 @@
+app_name: prowlarr
+web_name: indexers
+app_port: 9696
+service_port: 6003
+container_image: lscr.io/linuxserver/prowlarr:latest

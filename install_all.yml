@@ -2,5 +2,10 @@
   become: yes
   roles:
     - k3s
+    - authelia
     - sonarr
+    - radarr
     - torrent
+    - flaresolverr
+    - prowlarr
+    - plex

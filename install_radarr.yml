@@ -1,7 +1,4 @@
 - hosts: k3s-test-nko
   become: yes
   roles:
-    - k3s
-    - authelia
-    - sonarr
-      
+    - role: radarr

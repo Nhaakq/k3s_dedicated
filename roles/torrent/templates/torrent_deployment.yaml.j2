@@ -41,8 +41,8 @@ spec:
             - mountPath: "/config"
               subPath: config/{{ app_name }}
               name: {{ app_name }}-config
-            - mountPath: "/media"
-              subPath: media/
+            - mountPath: "/downloads"
+              subPath: downloads
               name: {{ app_name }}-data
 ---
 apiVersion: v1

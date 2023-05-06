@@ -1,0 +1,5 @@
+app_name: flaresolverr
+web_name: flare
+app_port: 8191
+service_port: 6004
+container_image: ghcr.io/flaresolverr/flaresolverr:latest

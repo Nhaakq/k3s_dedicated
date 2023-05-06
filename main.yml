@@ -1,5 +1,0 @@
-- hosts: all
-  tasks:
-    - name: test
-      debug:
-        msg: "Ceci cest un test {{ ansible_hostname }}"

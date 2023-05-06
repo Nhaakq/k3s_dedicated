@@ -1,9 +1,4 @@
-- name: Upgrade all packages
-  ansible.builtin.dnf:
-    name: "*"
-    state: latest
-  tags:
-    - packages
+#  
 
 - name: Install packages
   ansible.builtin.dnf:
@@ -11,14 +6,20 @@
     state: latest
   loop:
     - git
+    - vim
+    - mlocate
   tags:
     - packages
-
+  tags:
+    - early
+    
 - name: Create group K8S
   group:
     name: "{{ kub_group }}"
     gid: "{{ kub_group_gid }}"
     state: present
+  tags:
+    - early
 
 - name: Create Users Task
   user:
@@ -27,6 +28,8 @@
     shell: /bin/bash
     uid: "{{ kub_user_uid }}"
     group: "{{ kub_group }}"
+  tags:
+    - early
 
 - name: Download k3s installer
   ansible.builtin.get_url:
@@ -153,40 +156,74 @@
     url: https://github.com/cert-manager/cert-manager/releases/latest/download/cert-manager.yaml
     dest: /tmp/cert-manager.yaml
     mode: '0440'
+  tags:
+    - kub_conf
+    - cert_manager
 
 - name: Install Cert Manager
   kubernetes.core.k8s:
-    state: present            # State=present when you need to create new object
+    state: present
     src: /tmp/cert-manager.yaml
+  register: install_cert_manager
   tags:
     - kub_conf
     - ssl_configuration
+  tags:
+    - kub_conf
+    - cert_manager
 
-- name: Sleep for 60 seconds and continue with play
-  ansible.builtin.wait_for:
-    timeout: 60
-  delegate_to: localhost
+- name: Wait till the certmanaget pod is running
+  kubernetes.core.k8s_info:
+    kind: Pod
+    wait: yes
+    label_selectors:
+      # - app = cert-manager
+      - app.kubernetes.io/name=cert-manager
+    namespace: cert-manager
+    wait_sleep: 10
+    wait_timeout: 360
+    wait_condition:
+      type: ContainersReady
+      status: "True"
+  tags:
+    - kub_conf
+    - cert_manager
 
 - name: Copy file for k3s Deployment
   ansible.builtin.template:
-    src: "{{ item }}"
+    src: "templates/{{ item }}"
     dest: "/tmp/{{ item }}"
     owner: "{{ kub_user }}"
     group: "{{ kub_group }}"
   loop:
-    - "{{ list_k8s_files }}"
+    - pv_config.yaml.j2
+    - pv_data.yaml.j2
+    - pvc_config.yaml.j2
+    - pvc_data.j2
+    - cluster_issuer.yaml.j2
+    - traefik_middlewares.yaml.j2
   tags:
     - kub_conf
     - pvc_creation
 
 - name: Create a deployment
   kubernetes.core.k8s:
-    state: present            # State=present when you need to create new object
-    namespace: "{{ media_namespace }}" # defining the namespace
+    state: present
+    namespace: "{{ media_namespace }}"
     src: "/tmp/{{ item }}"
   loop:
-    - "{{ list_k8s_files }}"
+    - pv_config.yaml.j2
+    - pv_data.yaml.j2
+    - pvc_config.yaml.j2
+    - pvc_data.j2
+    - cluster_issuer.yaml.j2
+    - traefik_middlewares.yaml.j2
   tags:
     - kub_conf
     - pvc_creation
 
+- name: Change Default Context
+  ansible.builtin.shell:
+    cmd: 'kubectl config set-context --current --namespace={{ media_namespace }}'
+  tags:
+    - kub_conf

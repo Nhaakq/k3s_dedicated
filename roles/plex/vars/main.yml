@@ -1,0 +1,5 @@
+app_name: plex
+web_name: plex
+app_port: 32400
+service_port: 6005
+container_image: lscr.io/linuxserver/plex
