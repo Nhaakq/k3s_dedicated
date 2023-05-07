@@ -35,6 +35,7 @@
     path: "{{ path_config }}/config/prowlarr/config.xml"
     regexp: '<AuthenticationMethod>None</AuthenticationMethod>'
     replace: "<AuthenticationMethod>External</AuthenticationMethod>"
+  register: auth_change
 
 - name: kill {{ app_name }} pod
   kubernetes.core.k8s:
@@ -44,3 +45,29 @@
     namespace: "{{ media_namespace }}"
     label_selectors:
       - "app = {{ app_name }}"
+  when: auth_change.changed
+
+- name: Find {{ app_name }} Api Key
+  ansible.builtin.slurp:
+    src: "{{ path_config }}/config/{{ app_name }}/config.xml"
+  register: api_key
+
+- name: Setting Fact Api Key
+  ansible.builtin.set_fact:
+    api_key_app: "{{ api_key['content'] | b64decode | regex_findall('<ApiKey>([^<]*)</ApiKey>') | first }}"
+
+- name: Get body file
+  ansible.builtin.slurp:
+    src: "/tmp/body_DownloadClients"
+  register: body_json
+
+- name: Create Transmission Configuration
+  ansible.builtin.uri:
+    url: https://{{ web_name }}.{{ domain_name }}/api/v1/downloadclient?apikey={{ api_key_app }}
+    method: POST
+    body_format: json
+    status_code: [200, 202, 201]
+    validate_certs: false
+    headers:
+      Content-Type: application/json
+    body: "{{ body_json['content'] | b64decode }}"

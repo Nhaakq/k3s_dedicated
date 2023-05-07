@@ -46,6 +46,7 @@
   loop:
     - configuration.yml.j2
     - users_database.yml.j2
+  register: new_file
 
 - name: kill {{ app_name }} pod
   kubernetes.core.k8s:
@@ -55,7 +56,7 @@
     namespace: "{{ auth_namespace }}"
     label_selectors:
       - "app = {{ app_name }}"
-
+  when: new_file.changed
 
 
 

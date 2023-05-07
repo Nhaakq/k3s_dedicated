@@ -56,6 +56,10 @@ access_control:
         # Docker network
         - 172.16.0.0/12
 
+        # k3s network
+        # - 10.43.0.0/16
+        # - 10.42.0.0/16
+
     - name: openvpn
       networks:
         # OpenVPN subnet
@@ -73,6 +77,12 @@ access_control:
     - domain:
         - "auth.{{ domain_name }}" #This should be your authentication URL
       policy: bypass
+
+    - domain: "*.{{ domain_name }}"
+      policy: bypass
+      resources:
+      - '^/api([/?].*)?$'
+
     # - domain:
     #     - "plex.{{ domain_name }}" #This should be your authentication URL
     #   policy: bypass
