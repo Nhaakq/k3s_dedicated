@@ -67,6 +67,14 @@
     src: "/tmp/body_DownloadClients"
   register: body_json
 
+- name: Check {{ app_name }} configuration for Torrent client
+  ansible.builtin.uri:
+    url: https://{{ web_name }}.{{ domain_name }}/api/v3/downloadclient?apikey={{ api_key_app }}
+    method: GET
+    return_content: true
+    validate_certs: false
+  register: is_client_exist
+
 - name: Create Transmission Configuration
   ansible.builtin.uri:
     url: https://{{ web_name }}.{{ domain_name }}/api/v1/downloadclient?apikey={{ api_key_app }}
@@ -77,3 +85,6 @@
     headers:
       Content-Type: application/json
     body: "{{ body_json['content'] | b64decode }}"
+  when: is_client_exist|length < 1
+  tags:
+    - api
