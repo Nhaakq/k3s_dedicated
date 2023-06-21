@@ -2,4 +2,4 @@ app_name: torrent
 web_name: torrent
 app_port: 9091
 service_port: 6000
-container_image: lscr.io/linuxserver/transmission
+container_image: haugene/transmission-openvpn
