@@ -26,22 +26,36 @@ spec:
           image: {{ container_image }}
           imagePullPolicy: Always
           env:
+            - name: OPENVPN_PROVIDER
+              value: "{{ vpn_provider }}"
+            - name: OPENVPN_CONFIG
+              value: "{{ vpn_config }}"
+            - name: OPENVPN_USERNAME
+              value: "{{ vpn_username }}"
+            - name: OPENVPN_PASSWORD
+              value: "{{ vpn_password }}"
+            - name: LOCAL_NETWORK
+              value: 10.43.0.0/16
             - name: UID
               value: "{{ kub_user_uid }}"
             - name: PGID
               value: "{{ kub_group_gid }}"
-            - name: UMASK
-              value: "002"
             - name: TZ
               value: "Europe/Paris"
           ports:
             - containerPort: {{ app_port }}
           imagePullPolicy: Always
+          securityContext:
+            allowPrivilegeEscalation: true
+            capabilities:
+              add:
+              - NET_ADMIN
+            privileged: true
           volumeMounts:
             - mountPath: "/config"
               subPath: config/{{ app_name }}
               name: {{ app_name }}-config
-            - mountPath: "/downloads"
+            - mountPath: "/data"
               subPath: downloads
               name: {{ app_name }}-data
 ---
