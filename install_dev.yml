@@ -3,5 +3,8 @@
   roles:
     - k3s
     - authelia
+    - torrent
     - sonarr
-      
+    - radarr
+    - flaresolverr
+    - prowlarr
