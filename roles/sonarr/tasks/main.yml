@@ -19,19 +19,31 @@
   tags:
     - sonarr_install
 
+- name: Wait until the file {{ path_config }}/config/{{ app_name }}/config.xml exist
+  ansible.builtin.wait_for:
+    path: "{{ path_config }}/config/{{ app_name }}/config.xml"
+  tags:
+    - sonarr_install
+
 - name: Find {{ app_name }} Api Key
   ansible.builtin.slurp:
     src: "{{ path_config }}/config/{{ app_name }}/config.xml"
   register: api_key
+  tags:
+    - api
 
 - name: Setting Fact Api Key
   ansible.builtin.set_fact:
     api_key_app: "{{ api_key['content'] | b64decode | regex_findall('<ApiKey>([^<]*)</ApiKey>') | first }}"
+  tags:
+    - api
 
 - name: Get body file
   ansible.builtin.slurp:
     src: "/tmp/body_DownloadClients"
   register: body_json
+  tags:
+    - api
 
 - name: Create Transmission Configuration
   ansible.builtin.uri:
@@ -46,3 +58,5 @@
       User-Agent: PostmanRuntime/7.29.2
       Accept-Encoding: gzip, deflate, br
     body: "{{ body_json['content'] | b64decode }}"
+  tags:
+    - api

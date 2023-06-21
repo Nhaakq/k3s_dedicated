@@ -16,6 +16,12 @@
   tags:
     - radarr_install
 
+- name: Wait until the file {{ path_config }}/config/{{ app_name }}/config.xml exist
+  ansible.builtin.wait_for:
+    path: "{{ path_config }}/config/{{ app_name }}/config.xml"
+  tags:
+    - radarr_install
+
 - name: Find {{ app_name }} Api Key
   ansible.builtin.slurp:
     src: "{{ path_config }}/config/{{ app_name }}/config.xml"

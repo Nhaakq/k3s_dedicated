@@ -194,7 +194,7 @@
 - name: Copy file for k3s Deployment
   ansible.builtin.template:
     src: "templates/{{ item }}"
-    dest: "/tmp/{{ item | basename | regex_replace('\.j2$', '')}}"
+    dest: /tmp/{{ item | basename | regex_replace('\.j2$', '') }}
     owner: "{{ kub_user }}"
     group: "{{ kub_group }}"
   loop:
@@ -212,7 +212,7 @@
   kubernetes.core.k8s:
     state: present
     namespace: "{{ media_namespace }}"
-    src: "/tmp/{{ item | basename | regex_replace('\.j2$', '') }}"
+    src: /tmp/{{ item | basename | regex_replace('\.j2$', '') }}
   loop:
     - pv_config.yaml.j2
     - pv_data.yaml.j2

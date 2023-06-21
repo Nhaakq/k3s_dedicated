@@ -47,6 +47,12 @@
       - "app = {{ app_name }}"
   when: auth_change.changed
 
+- name: Wait until the file {{ path_config }}/config/{{ app_name }}/config.xml exist
+  ansible.builtin.wait_for:
+    path: "{{ path_config }}/config/{{ app_name }}/config.xml"
+  tags:
+    - prowlarr_install
+
 - name: Find {{ app_name }} Api Key
   ansible.builtin.slurp:
     src: "{{ path_config }}/config/{{ app_name }}/config.xml"
