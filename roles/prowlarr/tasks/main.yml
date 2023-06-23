@@ -1,9 +1,12 @@
 - name: Deploy Values charts
   ansible.builtin.template:
-    src: templates/prowlarr_deployment.yaml.j2
-    dest: /tmp/prowlarr_deployment.yaml
+    src: templates/{{ item }}
+    dest: /tmp/{{ item | basename | regex_replace('\.j2$', '') }}
     owner: "{{ kub_user }}"
     group: "{{ kub_group }}"
+  loop:
+    - prowlarr_deployment.yaml.j2
+    - prowlarr_body_DownloadClients.j2
   tags:
     - prowlarr_install
 
@@ -50,6 +53,7 @@
 - name: Wait until the file {{ path_config }}/config/{{ app_name }}/config.xml exist
   ansible.builtin.wait_for:
     path: "{{ path_config }}/config/{{ app_name }}/config.xml"
+    delay: 15
   tags:
     - prowlarr_install
 
@@ -60,31 +64,44 @@
 
 - name: Setting Fact Api Key
   ansible.builtin.set_fact:
-    api_key_app: "{{ api_key['content'] | b64decode | regex_findall('<ApiKey>([^<]*)</ApiKey>') | first }}"
+    api_key_prowlarr: "{{ api_key['content'] | b64decode | regex_findall('<ApiKey>([^<]*)</ApiKey>') | first }}"
 
 - name: Get body file
   ansible.builtin.slurp:
-    src: "/tmp/body_DownloadClients"
+    src: "/tmp/prowlarr_body_DownloadClients"
   register: body_json
 
 - name: Check {{ app_name }} configuration for Torrent client
   ansible.builtin.uri:
-    url: https://{{ web_name }}.{{ domain_name }}/api/v3/downloadclient?apikey={{ api_key_app }}
+    url: https://{{ web_name }}.{{ domain_name }}/api/v1/downloadclient?apikey={{ api_key_prowlarr }}
     method: GET
     return_content: true
     validate_certs: false
   register: is_client_exist
+  tags:
+    - api
+
+- name: Get body file
+  ansible.builtin.slurp:
+    src: "/tmp/prowlarr_body_DownloadClients"
+  register: body_json
+  when: is_client_exist.json|length < 1
+  tags:
+    - api
 
 - name: Create Transmission Configuration
   ansible.builtin.uri:
-    url: https://{{ web_name }}.{{ domain_name }}/api/v1/downloadclient?apikey={{ api_key_app }}
+    url: https://{{ web_name }}.{{ domain_name }}/api/v1/downloadclient?apikey={{ api_key_prowlarr }}
     method: POST
     body_format: json
     status_code: [200, 202, 201]
+    return_content: true
     validate_certs: false
     headers:
       Content-Type: application/json
+      User-Agent: PostmanRuntime/7.29.2
+      Accept-Encoding: gzip, deflate, br
     body: "{{ body_json['content'] | b64decode }}"
-  when: is_client_exist|length < 1
+  when: is_client_exist.json|length < 1
   tags:
     - api
