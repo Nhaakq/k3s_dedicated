@@ -1,3 +1,21 @@
+- name: Create Directory for {{ app_name }}
+  ansible.builtin.file:
+    path: "{{ path_config }}/config/{{ app_name }}/"
+    state: directory
+    owner: "{{ kub_user }}"
+    group: "{{ kub_group }}"
+  tags:
+    - sonarr_deployment
+
+- name: Create config file for {{ app_name }}
+  ansible.builtin.template:
+    src: templates/sonarr_conf.xml.j2
+    dest: "{{ path_config }}/config/{{ app_name }}/config.xml"
+    owner: "{{ kub_user }}"
+    group: "{{ kub_group }}"
+  tags:
+    - sonarr_deployment
+
 - name: Deploy Values charts
   ansible.builtin.template:
     src: templates/{{ item }}
@@ -19,32 +37,25 @@
   tags:
     - sonarr_install
 
-- name: Wait until the file {{ path_config }}/config/{{ app_name }}/config.xml exist
-  ansible.builtin.wait_for:
-    path: "{{ path_config }}/config/{{ app_name }}/config.xml"
-    delay: 15
+- name: Wait for {{ app_name }} API access
+  ansible.builtin.uri:
+    url: "https://{{ web_name }}.{{ domain_name }}/api/v3/downloadclient?apikey={{ sonarr_api_key }}"
+    return_content: True
+    timeout: 2
+    validate_certs: "{{ validate_certs }}"
+  register: sonarr_url
+  until: sonarr_url['status']|default(0) == 200
+  retries: 40
+  delay: 3
   tags:
     - sonarr_install
 
-- name: Find {{ app_name }} Api Key
-  ansible.builtin.slurp:
-    src: "{{ path_config }}/config/{{ app_name }}/config.xml"
-  register: api_key
-  tags:
-    - api
-
-- name: Setting Fact Api Key
-  ansible.builtin.set_fact:
-    api_key_sonarr: "{{ api_key['content'] | b64decode | regex_findall('<ApiKey>([^<]*)</ApiKey>') | first }}"
-  tags:
-    - api
-
 - name: Check {{ app_name }} configuration for Torrent client
   ansible.builtin.uri:
-    url: https://{{ web_name }}.{{ domain_name }}/api/v3/downloadclient?apikey={{ api_key_sonarr }}
+    url: https://{{ web_name }}.{{ domain_name }}/api/v3/downloadclient?apikey={{ sonarr_api_key }}
     method: GET
     return_content: true
-    validate_certs: false
+    validate_certs: "{{ validate_certs }}"
   register: is_client_exist
   tags:
     - api
@@ -59,12 +70,12 @@
 
 - name: Create Transmission Configuration
   ansible.builtin.uri:
-    url: https://{{ web_name }}.{{ domain_name }}/api/v3/downloadclient?apikey={{ api_key_sonarr }}
+    url: https://{{ web_name }}.{{ domain_name }}/api/v3/downloadclient?apikey={{ sonarr_api_key }}
     method: POST
     body_format: json
     status_code: [200, 202, 201]
     return_content: true
-    validate_certs: false
+    validate_certs: "{{ validate_certs }}"
     headers:
       Content-Type: application/json
       User-Agent: PostmanRuntime/7.29.2
