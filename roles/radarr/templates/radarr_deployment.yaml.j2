@@ -15,6 +15,10 @@ spec:
         app: {{ app_name }}
     spec:
       volumes:
+        - name: {{ app_name }}-config-file
+          hostPath:
+            path: {{ path_config }}/config/{{ app_name }}/config.xml
+            type: File      
         - name: {{ app_name }}-config
           persistentVolumeClaim:
             claimName: {{ name_pvc_config }}
@@ -38,8 +42,10 @@ spec:
             - containerPort: {{ app_port }}
           imagePullPolicy: Always
           volumeMounts:
-            - mountPath: "/config"
-              subPath: config/{{ app_name }}
+            - mountPath: "/config/config.xml"
+              name: {{ app_name }}-config-file          
+            - mountPath: "/config/logs"
+              subPath: config/{{ app_name }}/logs
               name: {{ app_name }}-config
             - mountPath: "/media"
               subPath: media/
