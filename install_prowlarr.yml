@@ -1,4 +1,9 @@
 - hosts: k3s-test-nko
   become: yes
   roles:
-    - role: prowlarr
+    - k3s
+    - authelia
+    - torrent
+    - sonarr
+    - radarr
+    - prowlarr

@@ -3,9 +3,9 @@
   roles:
     - k3s
     - authelia
+    - torrent
     - sonarr
     - radarr
-    - torrent
     - flaresolverr
     - prowlarr
     - plex
