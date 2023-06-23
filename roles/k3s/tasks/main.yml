@@ -12,7 +12,6 @@
     - bind-utils
   tags:
     - packages
-  tags:
     - early
     
 - name: Create group K8S
@@ -170,8 +169,6 @@
   tags:
     - kub_conf
     - ssl_configuration
-  tags:
-    - kub_conf
     - cert_manager
 
 - name: Wait till the certmanaget pod is running
