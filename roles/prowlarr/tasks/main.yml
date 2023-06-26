@@ -26,6 +26,7 @@
     - prowlarr_deployment.yaml.j2
     - prowlarr_body_DownloadClients.j2
     - prowlarr_app_radarr.j2
+    - prowlarr_flaresolverr.j2
   tags:
     - prowlarr_install
 
@@ -85,6 +86,77 @@
   when: is_client_exist.json|length < 1
   tags:
     - api
+
+########################### CONF TAG : ###########################
+- name: Check {{ app_name }} Tag
+  ansible.builtin.uri:
+    url: https://{{ web_name }}.{{ domain_name }}/api/v1/tag?apikey={{ prowlarr_api_key }}
+    method: GET
+    return_content: true
+    validate_certs: "{{ validate_certs }}"
+  register: is_tag_exist
+  tags:
+    - api
+    - tags
+
+- name: Create tag 
+  ansible.builtin.uri:
+    url: https://{{ web_name }}.{{ domain_name }}/api/v1/tag?apikey={{ prowlarr_api_key }}
+    method: POST
+    body_format: json
+    status_code: [200, 202, 201]
+    return_content: true
+    validate_certs: "{{ validate_certs }}"
+    headers:
+      Content-Type: application/json
+      User-Agent: PostmanRuntime/7.29.2
+      Accept-Encoding: gzip, deflate, br
+    body: '{"label": "flaresolverr", "id": 0}'
+  when: is_tag_exist.json|length < 1
+  tags:
+    - api
+    - tags
+######################################################################
+
+########################### CONF FLARESOLVERR : ######################
+
+- name: Check {{ app_name }} configuration for flaresolverr client
+  ansible.builtin.uri:
+    url: https://{{ web_name }}.{{ domain_name }}/api/v1/indexerProxy?apikey={{ prowlarr_api_key }}
+    method: GET
+    return_content: true
+    validate_certs: "{{ validate_certs }}"
+  register: is_flaresolverr_exist
+  tags:
+    - api
+
+- name: Get body file for flaresolverr
+  ansible.builtin.slurp:
+    src: "/tmp/prowlarr_flaresolverr"
+  register: flaresolverr_json
+  when: is_flaresolverr_exist.json|length < 1
+  tags:
+    - api
+
+- name: Create flaresolverr Configuration
+  ansible.builtin.uri:
+    url: https://{{ web_name }}.{{ domain_name }}/api/v1/indexerProxy?apikey={{ prowlarr_api_key }}
+    method: POST
+    body_format: json
+    status_code: [200, 202, 201]
+    return_content: true
+    validate_certs: "{{ validate_certs }}"
+    headers:
+      Content-Type: application/json
+      User-Agent: PostmanRuntime/7.29.2
+      Accept-Encoding: gzip, deflate, br
+    body: "{{ flaresolverr_json['content'] | b64decode }}"
+  when: is_flaresolverr_exist.json|length < 1
+  tags:
+    - api
+
+######################################################################
+
 
 - name: Get App Radarr conf file
   ansible.builtin.slurp:
