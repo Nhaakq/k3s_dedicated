@@ -1,0 +1,17 @@
+- name: Deploy Values charts
+  ansible.builtin.template:
+    src: "templates/{{ app_name }}_deployment.yaml.j2"
+    dest: "/tmp/{{ app_name }}_deployment.yaml"
+    owner: "{{ kub_user }}"
+    group: "{{ kub_group }}"
+  tags:
+    - app_install
+
+- name: Create a deployment
+  kubernetes.core.k8s:
+    apply: true
+    state: present
+    namespace: "{{ media_namespace }}"
+    src: "/tmp/{{ app_name }}_deployment.yaml"
+  tags:
+    - app_install

@@ -1,0 +1,5 @@
+app_name: push
+web_name: push
+app_port: 80
+service_port: 6007
+container_image: gotify/server
