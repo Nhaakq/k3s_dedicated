@@ -68,7 +68,7 @@ metadata:
       traefik.ingress.kubernetes.io/router.middlewares: {{ media_namespace }}-redirect-https@kubernetescrd,{{ auth_namespace }}-forwardauth-authelia@kubernetescrd
       cert-manager.io/cluster-issuer: {{ domain_name }}-issuer
       traefik.ingress.kubernetes.io/router.entryPoints: web,websecure
-      traefik.ingress.kubernetes.io/router.tls: "true"
+      #traefik.ingress.kubernetes.io/router.tls: "true"
       kubernetes.io/ingress.class: traefik
   name: ingress-{{ app_name }}
   namespace: {{ media_namespace }}
