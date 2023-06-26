@@ -24,7 +24,7 @@
     group: "{{ kub_group }}"
   loop:
     - sonarr_deployment.yaml.j2
-    - sonarr_body_DownloadClients.j2
+    - sonarr_DownloadClients.j2
   tags:
     - sonarr_install
 
@@ -62,7 +62,7 @@
 
 - name: Get body file
   ansible.builtin.slurp:
-    src: "/tmp/sonarr_body_DownloadClients"
+    src: "/tmp/sonarr_DownloadClients"
   register: body_json
   when: is_client_exist.json|length < 1
   tags:
