@@ -29,8 +29,6 @@ spec:
               value: "{{ kub_group_gid }}"
             - name: TZ
               value: "Europe/Paris"
-            - name: ADMIN_TOKEN
-              value: "Oh8uDq4fzzUbri6JKeAwEnfegRklqzzSEzk67BuCN4UeeWdPOIbTAziyTME53j2i"
           ports:
             - containerPort: {{ app_port }}
           imagePullPolicy: Always
