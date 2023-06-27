@@ -4,6 +4,11 @@ app_port: 80
 service_port: 6006
 container_image: vaultwarden/server:latest
 
+name_pv_config_password: config-password
+capacity_pv_config_password: 5
+path_config_password: /data
+name_pvc_config_password: config-password-pvc
+
 bitwarden_admin_token: !vault |
                        $ANSIBLE_VAULT;1.1;AES256
                        39623230396533386562623935343430653264653638613363663865666632633565316131633765
