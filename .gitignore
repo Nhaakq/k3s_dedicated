@@ -2,3 +2,4 @@
 *.pem
 dev*
 test*
+inventory/nko_ssh.yml
