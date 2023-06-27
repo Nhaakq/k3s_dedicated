@@ -84,3 +84,46 @@
   when: is_client_exist.json|length < 1
   tags:
     - api
+
+################## SONARR ROOT FOLDER CONF
+- name: Check {{ app_name }} configuration for Root Folder
+  ansible.builtin.uri:
+    url: https://series.{{ domain_name }}/api/v3/RootFolder?apikey={{ sonarr_api_key }}
+    method: GET
+    return_content: true
+    validate_certs: "{{ validate_certs }}"
+  register: root_folder_exist
+  tags:
+    - api
+    - rootfolder
+
+- name: Create Root Folder Configuration
+  ansible.builtin.uri:
+    url: https://series.{{ domain_name }}/api/v3/RootFolder?apikey={{ sonarr_api_key }}
+    method: POST
+    body_format: json
+    status_code: [200, 202, 201]
+    return_content: true
+    validate_certs: "{{ validate_certs }}"
+    headers:
+      Content-Type: application/json
+      User-Agent: PostmanRuntime/7.29.2
+      Accept-Encoding: gzip, deflate, br
+    body: "{{ item }}"
+  when: root_folder_exist.json|length < 1
+  loop:
+    - {
+        "path": "/media/tv",
+        "accessible": true,
+        "unmappedFolders": [],
+        "id": 0
+      }
+    - {
+        "path": "/media/animes",
+        "accessible": true,
+        "unmappedFolders": [],
+        "id": 0
+      }
+  tags:
+    - api
+    - rootfolder
