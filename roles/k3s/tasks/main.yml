@@ -10,6 +10,8 @@
     - mlocate
     - sqlite
     - bind-utils
+    - python3
+    - python3-pip
   tags:
     - packages
     - early
@@ -132,10 +134,13 @@
 
 - name: Create k8s namespace
   kubernetes.core.k8s:
-    name: "{{ media_namespace }}"
+    name: "{{ item }}"
     api_version: v1
     kind: Namespace
     state: present
+  loop:
+    - "{{ media_namespace }}"
+    - "{{ admin_namespace }}"
   tags:
     - kub_conf
     - namespace
