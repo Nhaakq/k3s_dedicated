@@ -77,49 +77,24 @@ access_control:
     - domain:
         - "auth.{{ domain_name }}" #This should be your authentication URL
       policy: bypass
+    - domain:
+        - "plex.{{ domain_name }}" # Plex authentication work
+      policy: bypass
+    - domain:
+        - "push.{{ domain_name }}" # Gotify 
+      policy: bypass
+    - domain:
+        - "password.{{ domain_name }}" # Bitwarden
+      policy: bypass
+
 
     - domain: "*.{{ domain_name }}"
       policy: bypass
       resources:
       - '^/api([/?].*)?$'
 
-    # - domain:
-    #     - "plex.{{ domain_name }}" #This should be your authentication URL
-    #   policy: bypass
-    # - domain:
-    #     - "push.{{ domain_name }}" #This should be your authentication URL
-    #   policy: bypass
-    # - domain:
-    #     - "reader.{{ domain_name }}" #This should be your authentication URL
-    #   policy: one_factor
-    # - domain:
-    #     - "password.{{ domain_name }}" #This should be your authentication URL
-    #   policy: bypass
-      #    - domain: "films.{{ domain_name }}" #example domain to protect
-      #      policy: deny
-#    - domain: "series.{{ domain_name }}" #example subdomain to protect
-#      policy: one_factor
-#    - domain: "jackett.{{ domain_name }}" #example subdomain to protect
-#      policy: one_factor
-#    - domain: "subtitles.{{ domain_name }}" #example subdomain to protect
-#      policy: one_factor
-#      # policy: one_factor
-#    - domain: "torrent.{{ domain_name }}" #example subdomain to protect
-#      policy: bypass
-
     - domain: "*.{{ domain_name }}" #example subdomain to protect
       policy: one_factor
-#
-#    - domain: "docker.{{ domain_name }}" #example subdomain to protect
-#      policy: one_factor
-#    - domain: "plex.{{ domain_name }}" #example subdomain to protect
-#      policy: one_factor
-#    - domain: "box.{{ domain_name }}" #example subdomain to protect
-#      policy: one_factor
-#      #    - domain: "*.{{ domain_name }}" #example to protect all subdomains under top-level domain
-#      #      policy: one_factor
-#      #add or remove additional subdomains as necessary. currenlty only supports ONE top-level domain
-#      #any time you add a new subdomain, you will need to restart the Authelia container to recognize the new settings/rules
 
 session:
   name: authelia_session
