@@ -23,7 +23,7 @@ spec:
           image: {{ container_image }}
           imagePullPolicy: Always
           env:
-            - name: UID
+            - name: PUID
               value: "{{ kub_user_uid }}"
             - name: PGID
               value: "{{ kub_group_gid }}"
